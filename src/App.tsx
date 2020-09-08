@@ -1,26 +1,28 @@
-import { inspect } from "@xstate/inspect"
+import { inspect } from "@xstate/inspect";
 
-import * as React from "react"
-import { css, cx } from "emotion"
-import { useThemeSwitch, useTheme } from "./theme"
-import { Brightness3, Brightness5, Backspace } from "@material-ui/icons"
-import { T9Machine, T9Context, T9Event } from "./machine"
-import { useMachine } from "@xstate/react"
-import { motion } from "framer-motion"
-import { T9 as T9Utils } from "./utils"
+import * as React from "react";
+import { css, cx } from "emotion";
+import { useThemeSwitch, useTheme } from "./theme";
+import { Brightness3, Brightness5, Backspace } from "@material-ui/icons";
+import { T9Machine, T9Context, T9Event } from "./machine";
+import { useMachine } from "@xstate/react";
+import { motion } from "framer-motion";
+import { T9 as T9Utils } from "./utils";
 
-inspect({
-  // options
-  // url: 'https://statecharts.io/inspect', // (default)
-  iframe: false // open in new window
-})
+if (process.env.NODE_ENV === "development") {
+  inspect({
+    // options
+    // url: 'https://statecharts.io/inspect', // (default)
+    iframe: false, // open in new window
+  });
+}
 
 const T9: React.FC = () => {
-  const theme = useTheme()
+  const theme = useTheme();
   const [current, send] = useMachine<T9Context, T9Event>(T9Machine, {
-    devTools: true
-  })
-  const { buttons, message, candidate } = current.context
+    devTools: true,
+  });
+  const { buttons, message, candidate } = current.context;
 
   const styles = {
     button: css`
@@ -34,6 +36,8 @@ const T9: React.FC = () => {
       width: 10vmin;
       height: 10vmin;
       font-size: 2vmin;
+      animation-timing-function: linear;
+      animation-duration: 0ms;
 
       background-color: ${theme.background};
       color: ${theme.body};
@@ -41,12 +45,12 @@ const T9: React.FC = () => {
       h3 {
         font-size: 4vmin;
       }
-    `
-  } as const
+    `,
+  } as const;
 
   const onClick = (buttonIndex: string) => {
-    send({ type: "PRESS", data: buttonIndex })
-  }
+    send({ type: "PRESS", data: buttonIndex });
+  };
 
   return (
     <div
@@ -69,6 +73,7 @@ const T9: React.FC = () => {
         `}
       >
         <span
+          data-testid="message"
           className={css`
             white-space: pre;
           `}
@@ -104,41 +109,41 @@ const T9: React.FC = () => {
           align-content: center;
         `}
       >
-        {buttons.map((button, i) => (
-          <motion.li
-            whileTap={{
-              animationTimingFunction: "linear",
-              animationDuration: "100ms",
-              backgroundColor: theme.primary,
-              color: theme.primaryAlt
-            }}
-            key={T9Utils.primary(button)}
-            className={cx(
-              styles.button,
-              T9Utils.primary(button) === "0"
-                ? css`
-                    grid-column: 1 / 3;
-                    margin-left: auto;
-                  `
-                : ""
-            )}
-            role="button"
-            onTap={() => onClick(T9Utils.primary(button))}
-            tabIndex={0}
-          >
-            <h3>{T9Utils.primary(button)}</h3>
-            <ul
-              className={css`
-                display: flex;
-              `}
+        {buttons.map((button) => (
+          <li key={T9Utils.primary(button)}>
+            <motion.button
+              whileTap={{
+                animationTimingFunction: "linear",
+                animationDuration: "100ms",
+                backgroundColor: theme.primary,
+                color: theme.primaryAlt,
+              }}
+              className={cx(
+                styles.button,
+                T9Utils.primary(button) === "0"
+                  ? css`
+                      grid-column: 1 / 3;
+                      margin-left: auto;
+                    `
+                  : ""
+              )}
+              onTap={() => onClick(T9Utils.primary(button))}
+              tabIndex={0}
             >
-              {T9Utils.trail(button).map((symbol) => (
-                <li key={symbol}>
-                  <span>{T9Utils.uiAliasFor(symbol)}</span>
-                </li>
-              ))}
-            </ul>
-          </motion.li>
+              <h3>{T9Utils.primary(button)}</h3>
+              <ul
+                className={css`
+                  display: flex;
+                `}
+              >
+                {T9Utils.trail(button).map((symbol) => (
+                  <li key={symbol}>
+                    <span>{T9Utils.uiAliasFor(symbol)}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.button>
+          </li>
         ))}
         <motion.li
           key="delete"
@@ -151,25 +156,26 @@ const T9: React.FC = () => {
               }
             `
           )}
+          data-testid="backspace"
           role="button"
           onTap={() => send("BACKSPACE")}
           whileTap={{
             animationTimingFunction: "linear",
             animationDuration: "100ms",
             backgroundColor: theme.primary,
-            color: theme.primaryAlt
+            color: theme.primaryAlt,
           }}
         >
           <Backspace />
         </motion.li>
       </ul>
     </div>
-  )
-}
+  );
+};
 
-export default function App() {
-  const themeSwitch = useThemeSwitch()
-  const theme = useTheme()
+export default function App(): ReturnType<React.FC> {
+  const themeSwitch = useThemeSwitch();
+  const theme = useTheme();
 
   return (
     <div
@@ -219,5 +225,5 @@ export default function App() {
         <T9 />
       </div>
     </div>
-  )
+  );
 }
